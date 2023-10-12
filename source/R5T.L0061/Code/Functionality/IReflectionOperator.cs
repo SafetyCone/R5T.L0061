@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-
+using System.Threading.Tasks;
 using R5T.T0132;
 
 
@@ -47,6 +47,23 @@ namespace R5T.L0061
                 });
         }
 
+        public async Task In_AssemblyContext(
+            string assemblyFilePath,
+            Func<Assembly, Task> action)
+        {
+            var assemblyFilePaths = Instances.AssemblyFilePathOperator.Get_DependencyAssemblyFilePaths_Inclusive(
+                assemblyFilePath);
+
+            await this.In_MetadataLoadContext(
+                assemblyFilePaths,
+                async metadataLoadContext =>
+                {
+                    var assembly = metadataLoadContext.LoadFromAssemblyPath(assemblyFilePath);
+
+                    await action(assembly);
+                });
+        }
+
         public void In_MetadataLoadContext(
             IEnumerable<string> assemblyFilePaths,
             Action<MetadataLoadContext> action)
@@ -54,6 +71,15 @@ namespace R5T.L0061
             using var metadataLoadContext = this.Get_MetadataLoadContext(assemblyFilePaths);
 
             action(metadataLoadContext);
+        }
+
+        public async Task In_MetadataLoadContext(
+            IEnumerable<string> assemblyFilePaths,
+            Func<MetadataLoadContext, Task> action)
+        {
+            using var metadataLoadContext = this.Get_MetadataLoadContext(assemblyFilePaths);
+
+            await action(metadataLoadContext);
         }
     }
 }
