@@ -32,19 +32,30 @@ namespace R5T.L0061
 
         public void In_AssemblyContext(
             string assemblyFilePath,
+            string[] dependencyAssemblyFilePaths,
             Action<Assembly> action)
         {
-            var assemblyFilePaths = Instances.AssemblyFilePathOperator.Get_DependencyAssemblyFilePaths_Inclusive(
-                assemblyFilePath);
-
             this.In_MetadataLoadContext(
-                assemblyFilePaths,
+                dependencyAssemblyFilePaths,
                 metadataLoadContext =>
                 {
                     var assembly = metadataLoadContext.LoadFromAssemblyPath(assemblyFilePath);
 
                     action(assembly);
                 });
+        }
+
+        public void In_AssemblyContext(
+            string assemblyFilePath,
+            Action<Assembly> action)
+        {
+            var dependencyAssemblyFilePaths = Instances.AssemblyFilePathOperator.Get_DependencyAssemblyFilePaths_Inclusive(
+                assemblyFilePath);
+
+            this.In_AssemblyContext(
+                assemblyFilePath,
+                dependencyAssemblyFilePaths,
+                action);
         }
 
         public async Task In_AssemblyContext(
